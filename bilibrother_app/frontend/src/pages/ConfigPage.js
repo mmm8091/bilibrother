@@ -2,17 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, message, Typography, Space, Divider } from 'antd';
 import { SaveOutlined, ReloadOutlined } from '@ant-design/icons';
 import { getConfig, updateConfig } from '../services/api';
+import { getViewSightConfig, updateViewSightConfig } from '../services/viewsightApi';
 
 const { Title, Text, Paragraph } = Typography;
 
 function ConfigPage() {
   const [form] = Form.useForm();
+  const [vsForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [vsLoading, setVsLoading] = useState(false);
+  const [vsSaving, setVsSaving] = useState(false);
   const [cookieData, setCookieData] = useState({
     SESSDATA: '',
     bili_jct: ''
   });
+  const [viewSightConfig, setViewSightConfig] = useState({});
 
   // 从cookie字符串中提取SESSDATA和bili_jct
   const extractCookieValues = (cookieStr) => {
@@ -66,9 +71,31 @@ function ConfigPage() {
     }
   };
 
+  // 加载ViewSight配置
+  const loadViewSightConfig = async () => {
+    setVsLoading(true);
+    try {
+      const configData = await getViewSightConfig();
+      setViewSightConfig(configData);
+      
+      // 提取值用于表单初始化
+      const formValues = {};
+      Object.keys(configData).forEach(key => {
+        formValues[key] = configData[key].value;
+      });
+      
+      vsForm.setFieldsValue(formValues);
+    } catch (error) {
+      message.error('获取ViewSight配置失败');
+    } finally {
+      setVsLoading(false);
+    }
+  };
+
   // 首次加载
   useEffect(() => {
     loadConfig();
+    loadViewSightConfig();
   }, []);
 
   // 保存配置
@@ -91,11 +118,28 @@ function ConfigPage() {
     }
   };
 
+  // 保存ViewSight配置
+  const handleSaveViewSight = async (values) => {
+    setVsSaving(true);
+    try {
+      // 更新ViewSight配置
+      await updateViewSightConfig(values);
+      message.success('ViewSight配置保存成功');
+      
+      // 更新本地状态
+      await loadViewSightConfig();
+    } catch (error) {
+      message.error('保存ViewSight配置失败');
+    } finally {
+      setVsSaving(false);
+    }
+  };
+
   return (
-    <div>
+    <div className="page-container">
       <Title level={2}>配置设置</Title>
       
-      <Card>
+      <Card title="B站API配置" className="card-container">
         <Form
           form={form}
           layout="vertical"
@@ -143,6 +187,101 @@ function ConfigPage() {
               icon={<ReloadOutlined />}
               onClick={loadConfig}
               loading={loading}
+            >
+              重新加载
+            </Button>
+          </Space>
+        </Form>
+      </Card>
+
+      <Card title="ViewSight预测服务配置" className="card-container">
+        <Form
+          form={vsForm}
+          layout="vertical"
+          onFinish={handleSaveViewSight}
+        >
+          <Paragraph>
+            配置ViewSight视频播放量预测服务所需的API信息，这些配置用于预测视频播放量和热度分析。
+          </Paragraph>
+          
+          <Divider />
+          
+          <Form.Item
+            name="viewsight_server_url"
+            label="ViewSight服务器地址"
+            rules={[{ required: true, message: '请输入ViewSight服务器地址' }]}
+            tooltip="ViewSight预测服务器的完整URL地址，如http://localhost:4432"
+          >
+            <Input placeholder="如: http://localhost:4432" />
+          </Form.Item>
+          
+          <Form.Item
+            name="viewsight_image_url"
+            label="图像分析API地址"
+            rules={[{ required: true, message: '请输入图像分析API地址' }]}
+            tooltip="用于分析视频封面的图像分析API地址"
+          >
+            <Input placeholder="图像分析API地址" />
+          </Form.Item>
+          
+          <Form.Item
+            name="viewsight_image_token"
+            label="图像分析API令牌"
+            rules={[{ required: true, message: '请输入图像分析API令牌' }]}
+            tooltip="图像分析API使用的认证令牌"
+          >
+            <Input.Password placeholder="图像分析API令牌" />
+          </Form.Item>
+          
+          <Form.Item
+            name="viewsight_image_model"
+            label="图像分析模型"
+            rules={[{ required: true, message: '请输入图像分析模型名称' }]}
+            tooltip="用于图像分析的模型名称"
+          >
+            <Input placeholder="图像分析模型名称" />
+          </Form.Item>
+          
+          <Form.Item
+            name="viewsight_backend_url"
+            label="趋势分析服务地址"
+            rules={[{ required: true, message: '请输入趋势分析服务地址' }]}
+            tooltip="用于分析视频趋势的API服务地址"
+          >
+            <Input placeholder="趋势分析服务地址" />
+          </Form.Item>
+          
+          <Form.Item
+            name="viewsight_token"
+            label="ViewSight API令牌"
+            rules={[{ required: true, message: '请输入ViewSight API令牌' }]}
+            tooltip="ViewSight API使用的认证令牌"
+          >
+            <Input.Password placeholder="ViewSight API令牌" />
+          </Form.Item>
+          
+          <Form.Item
+            name="viewsight_model"
+            label="ViewSight分析模型"
+            rules={[{ required: true, message: '请输入ViewSight分析模型名称' }]}
+            tooltip="用于视频分析的模型名称"
+          >
+            <Input placeholder="ViewSight分析模型名称" />
+          </Form.Item>
+          
+          <Space>
+            <Button
+              type="primary"
+              htmlType="submit"
+              icon={<SaveOutlined />}
+              loading={vsSaving}
+            >
+              保存ViewSight配置
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={loadViewSightConfig}
+              loading={vsLoading}
             >
               重新加载
             </Button>

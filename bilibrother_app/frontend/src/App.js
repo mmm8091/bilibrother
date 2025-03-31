@@ -4,13 +4,15 @@ import { Layout, Menu, Typography } from 'antd';
 import {
   BarChartOutlined,
   SettingOutlined,
-  VideoCameraOutlined
+  VideoCameraOutlined,
+  LineChartOutlined
 } from '@ant-design/icons';
 import './App.css';
 
 // 导入页面组件
 import VideoPage from './pages/VideoPage';
 import ConfigPage from './pages/ConfigPage';
+import PredictionPage from './pages/PredictionPage';
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -36,6 +38,9 @@ function App() {
             <Menu.Item key="1" icon={<VideoCameraOutlined />}>
               <Link to="/">视频监控</Link>
             </Menu.Item>
+            <Menu.Item key="3" icon={<LineChartOutlined />}>
+              <Link to="/prediction">播放量预测</Link>
+            </Menu.Item>
             <Menu.Item key="2" icon={<SettingOutlined />}>
               <Link to="/settings">配置设置</Link>
             </Menu.Item>
@@ -52,11 +57,12 @@ function App() {
               <Routes>
                 <Route path="/" element={<VideoPage />} />
                 <Route path="/settings" element={<ConfigPage />} />
+                <Route path="/prediction" element={<PredictionPage />} />
               </Routes>
             </div>
           </Content>
           <Layout.Footer style={{ textAlign: 'center' }}>
-            BiliBrother ©{new Date().getFullYear()} Created with ❤️
+            BiliBrother &copy;{new Date().getFullYear()} Created with &hearts;
           </Layout.Footer>
         </Layout>
       </Layout>

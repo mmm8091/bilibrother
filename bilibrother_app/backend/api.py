@@ -10,6 +10,7 @@ from datetime import datetime
 
 from .models import db, Video, Config
 from .crawler import BiliCrawler
+from .viewsight_client import ViewSightClient
 
 def create_app(db_path=None):
     """创建Flask应用实例
@@ -258,6 +259,122 @@ def create_app(db_path=None):
         # 默认返回JSON
         return jsonify(data)
     
+    # ViewSight视频播放量预测相关路由
+    @app.route('/api/predict/<bvid>', methods=['GET'])
+    def predict_video(bvid):
+        """预测视频播放量
+        
+        Args:
+            bvid: 视频BV号
+        
+        Returns:
+            预测结果
+        """
+        try:
+            # 初始化ViewSight客户端
+            viewsight_client = ViewSightClient()
+            
+            # 预测视频播放量
+            prediction_result = viewsight_client.predict_video_views(bvid)
+            
+            return jsonify(prediction_result)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/config/viewsight', methods=['GET'])
+    def get_viewsight_config():
+        """获取ViewSight配置信息"""
+        try:
+            # 查询所有ViewSight相关配置项
+            config_items = Config.query.filter(
+                Config.key.like('viewsight%')
+            ).all()
+            
+            # 如果没有配置项，则初始化
+            if not config_items:
+                default_configs = [
+                    Config(key='viewsight_server_url', value='http://localhost:4432', 
+                           description='ViewSight预测服务器地址'),
+                    Config(key='viewsight_image_url', value='', 
+                           description='ViewSight图像分析API地址'),
+                    Config(key='viewsight_image_token', value='', 
+                           description='ViewSight图像分析API令牌'),
+                    Config(key='viewsight_image_model', value='', 
+                           description='ViewSight图像分析模型名称'),
+                    Config(key='viewsight_backend_url', value='', 
+                           description='ViewSight后端分析服务地址'),
+                    Config(key='viewsight_token', value='', 
+                           description='ViewSight API令牌'),
+                    Config(key='viewsight_model', value='', 
+                           description='ViewSight分析模型名称')
+                ]
+                
+                for config in default_configs:
+                    db.session.add(config)
+                
+                db.session.commit()
+                config_items = default_configs
+            
+            # 转换为字典返回
+            config_dict = {item.key: {'value': item.value, 'description': item.description} 
+                          for item in config_items}
+            
+            return jsonify(config_dict)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/config/viewsight', methods=['POST'])
+    def update_viewsight_config():
+        """更新ViewSight配置信息"""
+        try:
+            config_data = request.json
+            
+            for key, value in config_data.items():
+                # 只更新viewsight开头的配置项
+                if key.startswith('viewsight'):
+                    config_item = Config.query.filter_by(key=key).first()
+                    
+                    if config_item:
+                        config_item.value = value
+                    else:
+                        new_config = Config(
+                            key=key,
+                            value=value,
+                            description=f'ViewSight配置项: {key}'
+                        )
+                        db.session.add(new_config)
+            
+            db.session.commit()
+            return jsonify({'message': 'ViewSight配置已更新'})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/videos/<bvid>/prediction', methods=['GET'])
+    def get_video_prediction(bvid):
+        """获取视频的播放量预测信息
+        
+        Args:
+            bvid: 视频BV号
+        
+        Returns:
+            该视频的播放量预测结果
+        """
+        try:
+            # 初始化ViewSight客户端
+            viewsight_client = ViewSightClient()
+            
+            # 检查视频是否存在
+            video = Video.query.filter_by(bvid=bvid).first()
+            if not video:
+                return jsonify({'error': f'未找到视频 {bvid}'}), 404
+                
+            # 预测视频播放量
+            prediction_result = viewsight_client.predict_video_views(bvid)
+            
+            return jsonify(prediction_result)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
     # 静态文件服务
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
