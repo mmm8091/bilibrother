@@ -293,7 +293,7 @@ def create_app(db_path=None):
             # 如果没有配置项，则初始化
             if not config_items:
                 default_configs = [
-                    Config(key='viewsight_server_url', value='http://localhost:4432', 
+                    Config(key='viewsight_server_url', value='http://sy1.efrp.eu.org:40399', 
                            description='ViewSight预测服务器地址'),
                     Config(key='viewsight_image_url', value='', 
                            description='ViewSight图像分析API地址'),
