@@ -7,3 +7,6 @@ bilibrother_app/backend/__pycache__/__init__.cpython-312.pyc
 bilibrother_app/backend/__pycache__/api.cpython-312.pyc
 bilibrother_app/backend/__pycache__/crawler.cpython-312.pyc
 bilibrother_app/backend/__pycache__/models.cpython-312.pyc
+
+.DS_Store 
+*/.DS_Store`
