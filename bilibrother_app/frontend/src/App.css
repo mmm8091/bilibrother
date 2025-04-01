@@ -1,0 +1,41 @@
+.App {
+  text-align: center;
+}
+
+.logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #001529;
+  margin: 0;
+  padding: 0;
+}
+
+.content-container {
+  padding: 24px;
+  min-height: 360px;
+  background: #fff;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.site-layout-background {
+  background: #fff;
+}
+
+.ant-layout-header {
+  background: #1890ff;
+  padding: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ant-layout-header h4 {
+    font-size: 16px;
+  }
+  
+  .content-container {
+    padding: 16px;
+  }
+}
